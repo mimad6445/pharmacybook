@@ -8,7 +8,7 @@ const createWord = async (req: Request, res: Response, next: NextFunction) => {
         const { wordArabic,wordEnglish,wordFrench,etat,description,image } = req.body;
         const addNewWord = new wordsdb({ wordArabic,wordEnglish,wordFrench,etat,description,image });
         await addNewWord.save();
-        logger.info('Admin created successfully', { adminId: addNewWord._id });
+        logger.info('word created successfully', { wordId: addNewWord._id });
         res.status(201).json({ status: httpStatusText.SUCCESS, data: { addNewWord } });
     } catch (error) {
         logger.error("error   == ",error);

@@ -8,7 +8,7 @@ const createWord = async (req: Request, res: Response, next: NextFunction) => {
         const { wordArabic,wordEnglish,wordFrench,etat,description,image } = req.body;
         const addNewWord = new wordsdb({ wordArabic,wordEnglish,wordFrench,etat,description,image });
         await addNewWord.save();
-        logger.info('word created successfully', { wordId: addNewWord._id });
+        logger.info('Admin created successfully', { adminId: addNewWord._id });
         res.status(201).json({ status: httpStatusText.SUCCESS, data: { addNewWord } });
     } catch (error) {
         logger.error("error   == ",error);
@@ -18,9 +18,51 @@ const createWord = async (req: Request, res: Response, next: NextFunction) => {
 
 const getAllWord = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const words = await wordsdb.find();
+        
+        interface Iindex{
+            word:string,
+            at:number
+        }
+        let index: Iindex[] = [
+            { word: 'أ', at: -1 },
+            { word: 'ب', at: -1 },
+            { word: 'ت', at: -1 },
+            { word: 'ث', at: -1 },
+            { word: 'ج', at: -1 },
+            { word: 'ح', at: -1 },
+            { word: 'خ', at: -1 },
+            { word: 'د', at: -1 },
+            { word: 'ذ', at: -1 },
+            { word: 'ر', at: -1 },
+            { word: 'ز', at: -1 },
+            { word: 'س', at: -1 },
+            { word: 'ش', at: -1 },
+            { word: 'ص', at: -1 },
+            { word: 'ض', at: -1 },
+            { word: 'ط', at: -1 },
+            { word: 'ظ', at: -1 },
+            { word: 'ع', at: -1 },
+            { word: 'غ', at: -1 },
+            { word: 'ف', at: -1 },
+            { word: 'ق', at: -1 },
+            { word: 'ك', at: -1 },
+            { word: 'ل', at: -1 },
+            { word: 'م', at: -1 },
+            { word: 'ن', at: -1 },
+            { word: 'ه', at: -1 },
+            { word: 'و', at: -1 },
+            { word: 'ي', at: -1 }
+        ];
+        const words = await wordsdb.find().sort({ wordArabic: 1 });
         logger.info('Retrieved all admins', { count: words.length });
-        res.status(200).json({ status: httpStatusText.SUCCESS, data: { words }});
+        for (let i = 0; i < words.length; i++) {
+            const firstLetter = words[i].wordArabic.charAt(0);
+            const indexItem = index.find(item => item.word === firstLetter);
+            if (indexItem && indexItem.at === -1) {
+                indexItem.at = i;
+            }
+        }
+        res.status(200).json({ status: httpStatusText.SUCCESS, data: { words }, index});
     } catch (error) {
         logger.error("error   == ",error);
         res.status(500).json({status:httpStatusText.ERROR,msg:"server thing"})

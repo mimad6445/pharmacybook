@@ -1,11 +1,13 @@
 import express from 'express';
-import {createWord,getAllWord,deleteWord,updateWord} from '../controller/word.controller';
+import {deleteWord,updateWord} from '../controller/word.controller';
+import {createWords,getAllWords} from '../controller/words.fb.controller';
+
 
 const router = express.Router();
 
 router.route('/')
-        .post(createWord)
-        .get(getAllWord);
+        .post(createWords)
+        .get(getAllWords);
 
 
 router.route('/:id')

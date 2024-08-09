@@ -1,4 +1,5 @@
 import { Document, Schema, Model, model } from "mongoose";
+import { v4 as uuidv4 } from 'uuid';
 
 interface Iword extends Document {
     wordArabic: string;
@@ -10,6 +11,7 @@ interface Iword extends Document {
 }
 
 const wordSchema: Schema = new Schema({
+    _id: { type: String, default: uuidv4 },
     wordArabic: { type: String, required: true },
     wordEnglish: { type: String},
     wordFrench: { type: String, required: true },

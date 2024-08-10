@@ -3,18 +3,13 @@ import wordsdb from '../model/word.model';
 import httpStatusText from '../utils/httpStatusText';
 import logger from '../utils/logger';
 import { db as firebaseDb } from "../connection/firebase"; // Assume you have initialized Firebase
-import { collection, addDoc ,getDoc , getDocs} from "firebase/firestore";
-import mongoose from "mongoose";
+import { collection, addDoc , getDocs} from "firebase/firestore";
 import { FirebaseError } from 'firebase/app';
-import { v4 as uuidv4 } from 'uuid';
 
 const createWords = async (req: Request, res: Response, next: NextFunction) => {
     const { wordArabic, wordEnglish, wordFrench, etat, description, image } = req.body;
-    const _id = uuidv4();
     try {
-            
             const docRef = await addDoc(collection(firebaseDb, "word"), {
-                _id,
                 wordArabic,
                 wordEnglish,
                 wordFrench,
@@ -26,7 +21,7 @@ const createWords = async (req: Request, res: Response, next: NextFunction) => {
             return res.status(201).json({ status: "SUCCESS", data: { id: docRef.id, wordArabic, wordEnglish, wordFrench, etat, description, image } });
     } catch (error) {
         if(error instanceof FirebaseError){
-            const addNewWord = new wordsdb({_id, wordArabic,wordEnglish,wordFrench,etat,description,image });
+            const addNewWord = new wordsdb({wordArabic,wordEnglish,wordFrench,etat,description,image });
             await addNewWord.save();
             logger.info('word created successfully', { adminId: addNewWord._id });
             res.status(201).json({ status: httpStatusText.SUCCESS, data: { addNewWord } });
@@ -76,7 +71,13 @@ const getAllWords = async (req: Request, res: Response, next: NextFunction) => {
         ];
         let word1 = await wordsdb.find();
         let word2Snapshot = await getDocs(collection(firebaseDb, "word"));
-        let word2 = word2Snapshot.docs.map(doc => ({ ...doc.data() }));
+        let word2 = word2Snapshot.docs.map(doc => ({ id: doc.id,
+            wordArabic: doc.data().wordArabic,
+            wordEnglish: doc.data().wordEnglish,
+            wordFrench: doc.data().wordFrench,
+            etat: doc.data().etat,
+            description: doc.data().description,
+            image: doc.data().image, }));
         const words = [...word1,...word2]
         words.sort((a, b) => {
             return a.wordArabic.localeCompare(b.wordArabic);

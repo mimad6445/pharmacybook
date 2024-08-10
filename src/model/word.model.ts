@@ -11,7 +11,6 @@ interface Iword extends Document {
 }
 
 const wordSchema: Schema = new Schema({
-    _id: { type: String, default: uuidv4 },
     wordArabic: { type: String, required: true },
     wordEnglish: { type: String},
     wordFrench: { type: String, required: true },

@@ -4,11 +4,12 @@ import httpStatusText from '../utils/httpStatusText';
 import logger from '../utils/logger';
 import { db as firebaseDb } from "../connection/firebase"; // Assume you have initialized Firebase
 import { collection, addDoc , getDocs} from "firebase/firestore";
-import { FirebaseError } from 'firebase/app';
+
 
 const createWords = async (req: Request, res: Response, next: NextFunction) => {
     const { wordArabic, wordEnglish, wordFrench, etat, description, image } = req.body;
     try {
+        const createdAt = new Date().toISOString();
             const docRef = await addDoc(collection(firebaseDb, "word"), {
                 wordArabic,
                 wordEnglish,
@@ -16,20 +17,12 @@ const createWords = async (req: Request, res: Response, next: NextFunction) => {
                 etat,
                 description,
                 image,
+                createdAt
             });
             logger.info('Word added successfully to Firebase', { firebaseDocId: docRef.id });
-            return res.status(201).json({ status: "SUCCESS", data: { id: docRef.id, wordArabic, wordEnglish, wordFrench, etat, description, image } });
+            return res.status(201).json({ status: httpStatusText.SUCCESS, data: { id: docRef.id, wordArabic, wordEnglish, wordFrench, etat, description, image,createdAt } });
     } catch (error) {
-        if(error instanceof FirebaseError){
-            const addNewWord = new wordsdb({wordArabic,wordEnglish,wordFrench,etat,description,image });
-            await addNewWord.save();
-            logger.info('word created successfully', { adminId: addNewWord._id });
-            res.status(201).json({ status: httpStatusText.SUCCESS, data: { addNewWord } });
-        }
-        else{
-            logger.error('Error adding word', { error });
-            return res.status(500).json({ status: "ERROR", message: error });
-        }
+        return res.status(500).json({ status: httpStatusText.ERROR, message: error });
     }
 };
 
@@ -69,16 +62,14 @@ const getAllWords = async (req: Request, res: Response, next: NextFunction) => {
             { word: 'و', at: -1 },
             { word: 'ي', at: -1 },
         ];
-        let word1 = await wordsdb.find();
         let word2Snapshot = await getDocs(collection(firebaseDb, "word"));
-        let word2 = word2Snapshot.docs.map(doc => ({ id: doc.id,
+        let words = word2Snapshot.docs.map(doc => ({ id: doc.id,
             wordArabic: doc.data().wordArabic,
             wordEnglish: doc.data().wordEnglish,
             wordFrench: doc.data().wordFrench,
             etat: doc.data().etat,
             description: doc.data().description,
             image: doc.data().image, }));
-        const words = [...word1,...word2]
         words.sort((a, b) => {
             return a.wordArabic.localeCompare(b.wordArabic);
         });
@@ -97,9 +88,68 @@ const getAllWords = async (req: Request, res: Response, next: NextFunction) => {
     }
 };
 
-
+const getAllWordsFrench = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        interface IIndex {
+            word: string;
+            at: number;
+        }
+        let index: IIndex[] = [
+            { word: 'a', at: -1 },
+            { word: 'b', at: -1 },
+            { word: 'c', at: -1 },
+            { word: 'd', at: -1 },
+            { word: 'e', at: -1 },
+            { word: 'f', at: -1 },
+            { word: 'g', at: -1 },
+            { word: 'h', at: -1 },
+            { word: 'i', at: -1 },
+            { word: 'j', at: -1 },
+            { word: 'k', at: -1 },
+            { word: 'l', at: -1 },
+            { word: 'm', at: -1 },
+            { word: 'n', at: -1 },
+            { word: 'o', at: -1 },
+            { word: 'p', at: -1 },
+            { word: 'q', at: -1 },
+            { word: 'r', at: -1 },
+            { word: 's', at: -1 },
+            { word: 't', at: -1 },
+            { word: 'u', at: -1 },
+            { word: 'v', at: -1 },
+            { word: 'w', at: -1 },
+            { word: 'x', at: -1 },
+            { word: 'y', at: -1 },
+            { word: 'z', at: -1 },
+        ];
+        let word2Snapshot = await getDocs(collection(firebaseDb, "word"));
+        let words = word2Snapshot.docs.map(doc => ({ id: doc.id,
+            wordArabic: doc.data().wordArabic,
+            wordEnglish: doc.data().wordEnglish,
+            wordFrench: doc.data().wordFrench,
+            etat: doc.data().etat,
+            description: doc.data().description,
+            image: doc.data().image, }));
+        words.sort((a, b) => {
+            return a.wordFrench.localeCompare(b.wordFrench);
+        });
+        logger.info('Retrieved all words', { count: words.length });
+        for (let i = 0; i < words.length; i++) {
+            const firstLetter = words[i].wordFrench.charAt(0).toLowerCase();
+            const indexItem = index.find(item => item.word === firstLetter);
+            if (indexItem && indexItem.at === -1) {
+                indexItem.at = i;
+            }
+        }
+        res.status(200).json({ status: "SUCCESS", data: { words }, index });
+    } catch (error) {
+        logger.error("Error fetching words", { error });
+        res.status(500).json({ status: "ERROR", msg: "Server error" });
+    }
+};
 
 export{
     createWords,
     getAllWords,
+    getAllWordsFrench
 };

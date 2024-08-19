@@ -5,15 +5,31 @@ import logger from '../utils/logger';
 import { db as firebaseDb } from "../connection/firebase"; // Assume you have initialized Firebase
 import { collection, addDoc , getDocs} from "firebase/firestore";
 
+interface Iword extends Document {
+    wordArabic: string;
+    wordEnglish: string;
+    wordFrench: string;
+    etat: string;
+    description: string;
+    type : String;
+    image: [{
+        title: String;
+        image : String
+    }];
+}
 
 const createWords = async (req: Request, res: Response, next: NextFunction) => {
-    const { wordArabic, wordEnglish, wordFrench, etat, description, image } = req.body;
     try {
+        const { wordArabic, wordEnglish, wordFrench,type, etat, description, image } = req.body;
         const createdAt = new Date().toISOString();
+        if (!wordArabic  || !wordFrench || !description) {
+            return res.status(400).json({ status: httpStatusText.ERROR, message: 'Invalid input data' });
+        }
             const docRef = await addDoc(collection(firebaseDb, "word"), {
                 wordArabic,
                 wordEnglish,
                 wordFrench,
+                type,
                 etat,
                 description,
                 image,

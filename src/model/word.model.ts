@@ -7,7 +7,11 @@ interface Iword extends Document {
     wordFrench: string;
     etat: string;
     description: string;
-    image: string;
+    type : String;
+    image: [{
+        title: String;
+        image : String
+    }];
 }
 
 const wordSchema: Schema = new Schema({
@@ -16,7 +20,11 @@ const wordSchema: Schema = new Schema({
     wordFrench: { type: String, required: true },
     description: { type: String, required: true },
     etat: { type: String },
-    image: { type: String },
+    type : {type : String},
+    image: [{
+        title: {type : String},
+        image : {type : String},
+    }]
 }, { timestamps: true });
 
 // Export the Admin model

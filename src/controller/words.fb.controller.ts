@@ -1,44 +1,39 @@
 import { Request, Response, NextFunction } from 'express';
-import wordsdb from '../model/word.model';
 import httpStatusText from '../utils/httpStatusText';
 import logger from '../utils/logger';
 import { db as firebaseDb } from "../connection/firebase"; // Assume you have initialized Firebase
 import { collection, addDoc , getDocs} from "firebase/firestore";
 
-interface Iword extends Document {
-    wordArabic: string;
-    wordEnglish: string;
-    wordFrench: string;
-    etat: string;
-    description: string;
-    type : String;
-    image: [{
-        title: String;
-        image : String
-    }];
-}
 
 const createWords = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { wordArabic, wordEnglish, wordFrench,type, etat, description, image } = req.body;
+        const { wordArabic, wordEnglish, wordFrench, etat, description, image } = req.body;
+        
         const createdAt = new Date().toISOString();
-        if (!wordArabic  || !wordFrench || !description) {
+        if (!wordArabic || !wordFrench || !description) {
             return res.status(400).json({ status: httpStatusText.ERROR, message: 'Invalid input data' });
         }
-            const docRef = await addDoc(collection(firebaseDb, "word"), {
-                wordArabic,
-                wordEnglish,
-                wordFrench,
-                type,
-                etat,
-                description,
-                image,
-                createdAt
-            });
-            logger.info('Word added successfully to Firebase', { firebaseDocId: docRef.id });
-            return res.status(201).json({ status: httpStatusText.SUCCESS, data: { id: docRef.id, wordArabic, wordEnglish, wordFrench, etat, description, image,createdAt } });
+        const wordData: any = {
+            wordArabic,
+            wordEnglish,
+            wordFrench,
+            etat,
+            description,
+            createdAt
+        };
+        if (image) {
+            wordData.image = image;
+        }
+        const docRef = await addDoc(collection(firebaseDb, "word"), wordData);
+        
+        logger.info('Word added successfully to Firebase', { firebaseDocId: docRef.id });
+        return res.status(201).json({
+            status: httpStatusText.SUCCESS,
+            data: { id: docRef.id, wordArabic, wordEnglish, wordFrench, etat, description, image, createdAt }
+        });
     } catch (error) {
-        return res.status(500).json({ status: httpStatusText.ERROR, message: error });
+        logger.error('Error adding word to Firebase', { error });
+        return res.status(500).json({ status: httpStatusText.ERROR, message: error});
     }
 };
 

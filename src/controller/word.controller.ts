@@ -3,7 +3,7 @@ import wordsdb from '../model/word.model';
 import httpStatusText from '../utils/httpStatusText';
 import logger from '../utils/logger';
 import { db } from "../connection/firebase";
-import { doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { doc, updateDoc, deleteDoc,getDoc } from "firebase/firestore";
 
 
 const deleteWord = async (req: Request, res: Response, next: NextFunction) => {
@@ -39,8 +39,39 @@ const updateWord = async (req: Request, res: Response) => {
         res.status(500).json({ success: httpStatusText.ERROR, message: 'Internal server error' });
     }
 };
+const addImageToWord = async (req: Request, res: Response) => {
+    try {
+        const wordId = req.params.id;
+        const image = req.body;
+        const wordDoc = doc(db, "word", wordId);
+        const wordDocSnap = await getDoc(wordDoc);
+        if(!image){
+            res.status(404).json({ success: httpStatusText.FAIL, message: "Image null" });
+        }
+        if (!wordDocSnap.exists()) {
+            logger.warn('Attempt to add image to non-existing word', { wordId });
+            return res.status(404).json({ success: httpStatusText.FAIL, message: "Word doesn't exist" });
+        }
 
+        const wordData = wordDocSnap.data();
+        let updatedImages = wordData.image ? [...wordData.image, image] : [image];
+        if(updatedImages.length>3 ){
+            return res.status(400).json({ success: httpStatusText.FAIL, message: "3 image maxiumun" });
+        }
+        
+        await updateDoc(wordDoc, { image: updatedImages });
+        
+        
+        
+
+        res.status(200).json({ success: httpStatusText.SUCCESS, message: 'word added image successfully' });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: httpStatusText.ERROR, message: 'Internal server error' });
+    }
+};
 export{
     deleteWord,
-    updateWord
+    updateWord,
+    addImageToWord
 };

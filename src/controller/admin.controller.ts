@@ -42,7 +42,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
         });
     } catch (error) {
         logger.error("error   == ",error);
-        res.status(500).json({status:httpStatusText.ERROR,msg:"server thing"})
+        res.status(500).json({status:httpStatusText.ERROR,msg:`server thing ${error}`})
     }
 };
 
